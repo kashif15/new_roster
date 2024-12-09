@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" type="text/css" /> 
+
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"> -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+</head>
+<body class="profile-page">
+
+    <!-- Navbar (Same as in index and team pages) -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <h1>Roster</h1>
+        </div>
+        <div class="navbar-center">
+            <a href="/" title="Home"><i class="fas fa-home"></i></a>
+            <a href="/team" title="Team"><i class="fas fa-users"></i></a>
+            <a href="#" title="Upload" data-toggle="modal" data-target="#uploadModal"><i class="fas fa-upload"></i></a>
+        </div>
+        <div class="navbar-right">
+            <button class="login-btn" onclick="window.location.href='/login'">Login</button>
+        </div>
+    </nav>
+
+   <!-- Profile Section -->
+<section class="profile-section">
+    <div class="profile-container">
+        <div class="profile-details">
+            <h1 class="page-title">Hello <%= employee.employeeName %></h1>
+            <p class="description">You can see the progress you've made with your work and manage your projects or assigned tasks.</p>
+        </div>
+        <div class="profile-picture-container">
+            <div class="profile-picture">
+                <img src="<%= employee.image ? employee.image : 'https://randomuser.me/api/portraits/men/1.jpg' %>" alt="<%= employee.employeeName %>">
+                <!-- Edit Icon -->
+                <i class="fas fa-edit edit-icon" data-toggle="modal" data-target="#editImageModal"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Modal for Editing Profile Image -->
+<div id="editImageModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Edit Profile Picture</h4>
+            </div>
+            <div class="modal-body">
+                <form id="updateForm" action="/update?_method=PUT" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="_method" value="PUT">
+                    <input type="hidden" name="employeeName" value="<%= employee.employeeName %>">
+                    <div class="form-group">
+                        <label for="image">Select New Image:</label>
+                        <input type="file" id="image" name="image" class="form-control" required accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Image</button>
+                </form>               
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<section class="calendar-section position-relative">
+    <button id="download-calendar" class="btn btn-primary calendar-download-btn">
+        <i class="fas fa-download"></i>
+    </button>
+    <div id="calendar"></div>
+</section>
+
+
+
+   <!-- Shift Summary Table -->
+<div class="container my-10">
+    <div class="row justify-content-center">
+        <div class="col-lg-12 col-md-10">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Shift Type</th>
+                            <th scope="col">Days Worked</th>
+                            <th scope="col">On Sunday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Morning</td>
+                            <td id="morning-count">0</td>
+                            <td id="morning-sunday-count">0</td>
+                        </tr>
+                        <tr>
+                            <td>Afternoon</td>
+                            <td id="afternoon-count">0</td>
+                            <td id="afternoon-sunday-count">0</td>
+                        </tr>
+                        <tr>
+                            <td>Night</td>
+                            <td id="night-count">0</td>
+                            <td id="night-sunday-count">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Error</h4>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    
+    <!-- jQuery, Bootstrap JS, FullCalendar JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+
+    <!-- Inside profile.ejs -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+
+        // Assuming "shifts" is passed from the backend as a JavaScript object
+        var shiftData = JSON.parse('<%- shifts %>');
+
+        // Function to format date string to YYYY-MM-DD
+        function formatDateString(dateString) {
+            let parts = dateString.split('-');
+            let year = parts[0];
+            let month = parts[1].padStart(2, '0');  // Pad month with leading zero if necessary
+            let day = parts[2].padStart(2, '0');    // Pad day with leading zero if necessary
+            return `${year}-${month}-${day}`;
+        }
+
+        function calculateShiftStatistics(month, year) {
+    let morningCount = 0;
+    let afternoonCount = 0;
+    let nightCount = 0;
+    let sundayMorningCount = 0;
+    let sundayAfternoonCount = 0;
+    let sundayNightCount = 0;
+
+    for (let dateStr in shiftData) {
+        let dateObj = new Date(dateStr);
+
+        if (isNaN(dateObj.getTime())) {
+            console.warn("Invalid date string:", dateStr);
+            continue;
+        }
+
+        let shiftMonth = dateObj.getMonth() + 1;
+        let shiftYear = dateObj.getFullYear();
+        let dayOfWeek = dateObj.getDay();
+        let shiftType = shiftData[dateStr];
+
+        if (shiftMonth === month && shiftYear === year) {
+            if (dayOfWeek === 0) { // Sunday
+                console.log(`Sunday detected: ${dateStr}, Shift: ${shiftType}`);
+                switch (shiftType) {
+                    case 'M': sundayMorningCount++; break;
+                    case 'A': sundayAfternoonCount++; break;
+                    case 'N': sundayNightCount++; break;
+                    default:
+                        console.warn(`Unexpected shift type on Sunday: ${shiftType}`);
+                }
+            } else { // Regular weekdays
+                switch (shiftType) {
+                    case 'M': morningCount++; break;
+                    case 'A': afternoonCount++; break;
+                    case 'N': nightCount++; break;
+                    default:
+                        console.warn(`Ignoring unknown shift type: ${shiftType}`);
+                }
+            }
+        }
+    }
+
+    console.log("Statistics:", {
+        morningCount, afternoonCount, nightCount,
+        sundayMorningCount, sundayAfternoonCount, sundayNightCount
+    });
+
+    document.getElementById('morning-count').textContent = morningCount;
+    document.getElementById('afternoon-count').textContent = afternoonCount;
+    document.getElementById('night-count').textContent = nightCount;
+    document.getElementById('morning-sunday-count').textContent = sundayMorningCount;
+    document.getElementById('afternoon-sunday-count').textContent = sundayAfternoonCount;
+    document.getElementById('night-sunday-count').textContent = sundayNightCount;
+}
+
+
+
+        // Convert shift data to FullCalendar events
+        var calendarEvents = [];
+        for (var date in shiftData) {
+            if (shiftData.hasOwnProperty(date)) {
+                let formattedDate = formatDateString(date);  // Format the date
+                let shiftType = shiftData[date];
+                let backgroundColor, borderColor;
+
+                // Assign colors based on shift type (M, A, N)
+                if (shiftType === 'M') {
+                    backgroundColor = '#FF8A65';  // Darker orange for Morning shift
+                    borderColor = '#E65100';
+                } else if (shiftType === 'A') {
+                    backgroundColor = '#FFB74D';  // Muted amber for Afternoon shift
+                    borderColor = '#F57C00';
+                } else if (shiftType === 'N') {
+                    backgroundColor = '#9575CD';  // Darker purple for Night shift
+                    borderColor = '#512DA8';
+                }
+
+                calendarEvents.push({
+                    title: shiftType,  // The shift type (M, A, N)
+                    start: formattedDate,  // The correctly formatted date (YYYY-MM-DD)
+                    backgroundColor: backgroundColor,  // Set background color
+                    borderColor: borderColor  // Set border color
+                });
+            }
+        }
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: calendarEvents,
+            dateClick: function(info) {
+                // Handle date clicks if needed
+            },
+            datesSet: function(dateInfo) {
+                let selectedMonth = dateInfo.start.getMonth() + 1; // Months are zero-indexed
+                let selectedYear = dateInfo.start.getFullYear();
+                calculateShiftStatistics(selectedMonth, selectedYear);
+            }
+        });
+
+        calendar.render();
+        
+        // Calculate statistics for the initial month
+        calculateShiftStatistics(new Date().getMonth() + 1, new Date().getFullYear());
+
+        
+
+            // Function to validate image file
+    function validateImageFile(file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        return validTypes.includes(file.type);
+    }
+
+    // Function to show error modal
+    function showError(message) {
+        $('#errorMessage').text(message);
+        $('#errorModal').modal('show');
+    }
+
+    // Image file validation on change
+    $('#image').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file && !validateImageFile(file)) {
+            e.target.value = ''; // Clear the file input
+            showError('Please upload a valid image file (JPEG, PNG, GIF, or WEBP)');
+            return false;
+        }
+    });
+
+    // Form submission handling
+    $('form[action="/update?_method=PUT"]').on('submit', function(e) {
+        const fileInput = $('#image')[0];
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            e.preventDefault();
+            showError('Please select an image file');
+            return false;
+        }
+
+        if (!validateImageFile(file)) {
+            e.preventDefault();
+            fileInput.value = ''; // Clear the file input
+            showError('Please upload a valid image file (JPEG, PNG, GIF, or WEBP)');
+            return false;
+        }
+    });
+
+
+    document.getElementById('download-calendar').addEventListener('click', function() {
+    const calendarElement = document.getElementById('calendar');
+
+            // Use html2canvas to capture the calendar
+            html2canvas(calendarElement, {
+                scrollY: -window.scrollY, // Adjust for any scroll offset
+            }).then(canvas => {
+                // Convert the canvas to a downloadable image
+                const link = document.createElement('a');
+                link.download = 'calendar_snapshot.png'; // File name for the downloaded image
+                link.href = canvas.toDataURL(); // Convert canvas to data URL
+                link.click(); // Trigger download
+            }).catch(err => {
+                console.error('Error taking snapshot:', err);
+                alert('Failed to download the calendar snapshot.');
+            });
+        });
+
+
+    });
+    
+</script>
+
+</body>
+</html>
